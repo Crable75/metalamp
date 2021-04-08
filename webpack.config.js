@@ -2,6 +2,7 @@ const path = require('path')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const { CleanWebpackPlugin } = require('clean-webpack-plugin')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const CopyPlugin = require("copy-webpack-plugin");
 
 const isDev = process.env.NODE_ENV === 'development';
 const isProd = !isDev;
@@ -9,6 +10,7 @@ const isProd = !isDev;
 const filename = (ext) => isDev ? `[name].${ext}` : `[name].[contenthash].${ext}`;
 
 module.exports = {
+
   mode: 'development',
   entry: {
     main: path.resolve(__dirname, './src/js/main.js'),
@@ -17,6 +19,8 @@ module.exports = {
   output: {
     path: path.resolve(__dirname, './dist'),
     filename: `./js/${filename('js')}`,
+    publicPath: '',
+    assetModuleFilename: 'images/[hash][ext][query]'
   },
 
   devServer: {
@@ -29,6 +33,11 @@ module.exports = {
   },
 
   plugins: [
+    new CopyPlugin({
+      patterns: [
+        { from: path.resolve(__dirname, './src/assets/'), to: path.resolve(__dirname, './dist/') },
+      ],
+    }),
     new HtmlWebpackPlugin({
       template: path.resolve(__dirname, './src/index.html'),
       filename: 'index.html',
@@ -46,6 +55,13 @@ module.exports = {
   module: {
     rules: [
       {
+        test: /\.html$/i,
+        loader: 'html-loader',
+        options: {
+          sources: false,
+        },
+      },
+      {
         test: /\.js$/,
         exclude: /node_modules/,
         use: ['babel-loader'],
@@ -60,8 +76,16 @@ module.exports = {
       },
       {
         test: /\.css$/i,
-        use: [MiniCssExtractPlugin.loader, 'css-loader'],
+        use: [
+          {
+            loader: MiniCssExtractPlugin.loader,
+            options: {
+              hmr: isDev,
+            }
+          },
+          'css-loader'],
       },
+      {test: /\.(?:ico|gif|png|jpg|jpeg)$/i, type: 'asset/resource'},
     ],
   }
 }

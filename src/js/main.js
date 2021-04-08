@@ -1,4 +1,5 @@
 import '../scss/main.scss'
+import '../index.html'
 
 // создание свойства класса без конструктора
 class Game {
